@@ -3,7 +3,6 @@ import express from 'express'
 import { z } from 'zod'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import { GeminiHttpError, geminiGenerateText } from './gemini.js'
 import { GroqHttpError, groqGenerateText } from './groq.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -13,12 +12,11 @@ app.use(express.json({ limit: '1mb' }))
 const PORT = Number(process.env.PORT || 8787)
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'
-const AI_PROVIDER = (process.env.AI_PROVIDER || '').toLowerCase()
 
-if (!GEMINI_API_KEY && !GROQ_API_KEY) {
+if (!GROQ_API_KEY) {
   // eslint-disable-next-line no-console
   console.warn(
-    'Missing API key. Set GROQ_API_KEY (recommended) or GEMINI_API_KEY in server/.env.',
+    'Missing API key. Set GROQ_API_KEY in server/.env.',
   )
 }
 
@@ -75,46 +73,25 @@ app.post('/api/ai/resume/generate', async (req, res) => {
     })
   }
 
-  const provider =
-    AI_PROVIDER === 'groq' || AI_PROVIDER === 'gemini'
-      ? AI_PROVIDER
-      : GROQ_API_KEY
-        ? 'groq'
-        : 'gemini'
+  const provider = 'groq'
 
-  if (provider === 'groq' && !GROQ_API_KEY) {
+  if (!GROQ_API_KEY) {
     return res.status(500).json({
       code: 'MISSING_API_KEY',
       message: 'Backend is missing GROQ_API_KEY',
     })
   }
 
-  if (provider === 'gemini' && !GEMINI_API_KEY) {
-    return res.status(500).json({
-      code: 'MISSING_API_KEY',
-      message: 'Backend is missing GEMINI_API_KEY',
-    })
-  }
-
   try {
     const { section, inputs, constraints, temperature, topP } = parsed.data
     const prompt = buildPrompt({ section, inputs, constraints })
-    const out =
-      provider === 'groq'
-        ? await groqGenerateText({
-            apiKey: GROQ_API_KEY,
-            model: GROQ_MODEL,
-            prompt,
-            temperature,
-            topP,
-          })
-        : await geminiGenerateText({
-            apiKey: GEMINI_API_KEY,
-            model: GEMINI_MODEL,
-            prompt,
-            temperature,
-            topP,
-          })
+    const out = await groqGenerateText({
+      apiKey: GROQ_API_KEY,
+      model: GROQ_MODEL,
+      prompt,
+      temperature,
+      topP,
+    })
     return res.json({ text: out.text })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error'
@@ -125,14 +102,6 @@ app.post('/api/ai/resume/generate', async (req, res) => {
       lower.includes('invalid_api_key') ||
       lower.includes('unauthorized')
 
-    if (e instanceof GeminiHttpError) {
-      return res.status(isInvalidKey ? 401 : 502).json({
-        code: isInvalidKey ? 'INVALID_API_KEY' : 'GEMINI_ERROR',
-        message,
-        upstream: { httpStatus: e.status, status: e.geminiStatus ?? null },
-      })
-    }
-
     if (e instanceof GroqHttpError) {
       return res.status(isInvalidKey ? 401 : 502).json({
         code: isInvalidKey ? 'INVALID_API_KEY' : 'GROQ_ERROR',
@@ -142,7 +111,7 @@ app.post('/api/ai/resume/generate', async (req, res) => {
     }
 
     return res.status(isInvalidKey ? 401 : 502).json({
-      code: isInvalidKey ? 'INVALID_API_KEY' : 'GEMINI_ERROR',
+      code: isInvalidKey ? 'INVALID_API_KEY' : 'GROQ_ERROR',
       message,
     })
   }
