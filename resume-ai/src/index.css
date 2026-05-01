@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
+  color: theme(colors.slate.900);
+  background: theme(colors.slate.50);
+}
+
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  [data-app-header],
+  .print-hidden {
+    display: none !important;
+  }
+
+  #main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .resume-print-area {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 18mm !important;
+    width: 100% !important;
+  }
+}
