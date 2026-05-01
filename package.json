@@ -2,9 +2,12 @@
   "name": "resume-ai-monorepo",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "build": "npm run build --prefix resume-ai && npm run build --prefix server",
-    "dev": "npm run dev --prefix resume-ai",
+    "build": "sh -c 'cd resume-ai && npm install && npm run build'",
+    "dev": "sh -c 'cd resume-ai && npm run dev'",
     "start": "node server/src/index.js"
   }
 }
