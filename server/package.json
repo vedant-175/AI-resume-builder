@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "build": "echo 'No build needed for backend'"
-    "start": "node src/index.js"
+    "build": "cd ../resume-ai && npm run build"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
