@@ -1,9 +1,12 @@
 import 'dotenv/config'
 import express from 'express'
 import { z } from 'zod'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 import { GeminiHttpError, geminiGenerateText } from './gemini.js'
 import { GroqHttpError, groqGenerateText } from './groq.js'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
 app.use(express.json({ limit: '1mb' }))
 
@@ -143,6 +146,19 @@ app.post('/api/ai/resume/generate', async (req, res) => {
       message,
     })
   }
+})
+
+// Serve built frontend
+const distPath = join(__dirname, '../../resume-ai/dist')
+app.use(express.static(distPath, { maxAge: '1d' }))
+
+// SPA fallback - serve index.html for unmatched routes
+app.get('*', (_req, res) => {
+  res.sendFile(join(distPath, 'index.html'), {
+    headers: {
+      'Cache-Control': 'no-cache',
+    },
+  })
 })
 
 app.listen(PORT, () => {
