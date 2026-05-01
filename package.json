@@ -1,0 +1,10 @@
+{
+  "name": "resume-ai-monorepo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run build --prefix resume-ai && npm run build --prefix server",
+    "dev": "npm run dev --prefix resume-ai",
+    "start": "node server/src/index.js"
+  }
+}
