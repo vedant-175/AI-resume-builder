@@ -6,9 +6,9 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "sh -c 'cd resume-ai && npm install && npm run build'",
+    "install": "npm --prefix server install && npm --prefix resume-ai install",
+    "build": "npm run install && npm --prefix resume-ai run build",
     "dev": "sh -c 'cd resume-ai && npm run dev'",
-    "start": "node server/src/index.js",
-    "postinstall": "npm --prefix server install && npm --prefix resume-ai install"
+    "start": "npm --prefix server start"
   }
 }
