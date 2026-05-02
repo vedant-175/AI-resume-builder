@@ -34,6 +34,10 @@ const AiGenerateReq = z.object({
   topP: z.number().min(0).max(1).default(0.9),
 })
 
+const AtsScoreReq = z.object({
+  resumeText: z.string(),
+})
+
 function buildPrompt({ section, inputs, constraints }) {
   const rules = [
     'You are a career-domain assistant that writes ATS-friendly resumes.',
@@ -62,6 +66,26 @@ function buildPrompt({ section, inputs, constraints }) {
     null,
     2,
   )}`
+}
+
+function buildAtsScorePrompt(resumeText) {
+  return `You are an ATS (Applicant Tracking System) expert. Analyze the following resume text and provide a realistic ATS score from 0-100 based on how well it would perform in modern ATS systems.
+
+Consider these factors:
+- Keyword optimization for the target role
+- Use of quantifiable achievements and metrics
+- ATS-friendly formatting (no graphics, tables, columns)
+- Relevant skills and experience matching job requirements
+- Professional language and action verbs
+- Length and structure appropriateness
+
+Resume text:
+${resumeText}
+
+Provide only a JSON response with this exact format:
+{"score": number, "tips": ["tip1", "tip2", "tip3", ...]}
+
+The score should be realistic - perfect resumes rarely score 100. Focus on areas for improvement.`
 }
 
 app.post('/api/ai/resume/generate', async (req, res) => {
@@ -113,6 +137,50 @@ app.post('/api/ai/resume/generate', async (req, res) => {
 
     return res.status(isInvalidKey ? 401 : 502).json({
       code: isInvalidKey ? 'INVALID_API_KEY' : 'GROQ_ERROR',
+      message,
+    })
+  }
+})
+
+app.post('/api/ai/ats/score', async (req, res) => {
+  const parsed = AtsScoreReq.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({
+      code: 'BAD_REQUEST',
+      message: 'Invalid request body',
+      details: parsed.error.flatten(),
+    })
+  }
+
+  if (!GROQ_API_KEY) {
+    return res.status(500).json({
+      code: 'MISSING_API_KEY',
+      message: 'Backend is missing GROQ_API_KEY',
+    })
+  }
+
+  try {
+    const { resumeText } = parsed.data
+    const prompt = buildAtsScorePrompt(resumeText)
+    const out = await groqGenerateText({
+      apiKey: GROQ_API_KEY,
+      model: GROQ_MODEL,
+      prompt,
+      temperature: 0.3, // Lower temperature for consistent scoring
+      topP: 0.9,
+    })
+
+    // Parse the AI response as JSON
+    const result = JSON.parse(out.text.trim())
+    if (typeof result.score !== 'number' || !Array.isArray(result.tips)) {
+      throw new Error('Invalid AI response format')
+    }
+
+    return res.json({ score: result.score, tips: result.tips })
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Unknown error'
+    return res.status(502).json({
+      code: 'GROQ_ERROR',
       message,
     })
   }
