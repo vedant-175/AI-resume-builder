@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import dotenv from "dotenv";
 import express from 'express'
 import { z } from 'zod'
 import { fileURLToPath } from 'url'
@@ -6,9 +6,10 @@ import { dirname, join } from 'path'
 import { GroqHttpError, groqGenerateText } from './groq.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: join(__dirname, '../.env') })
 const app = express()
 app.use(express.json({ limit: '1mb' }))
-
+console.log(process.env.GROQ_API_KEY);
 const PORT = Number(process.env.PORT || 8787)
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant'
@@ -122,7 +123,7 @@ const distPath = join(__dirname, '../../resume-ai/dist')
 app.use(express.static(distPath, { maxAge: '1d' }))
 
 // SPA fallback - serve index.html for unmatched routes
-app.get('*', (_req, res) => {
+app.use((req, res) => {
   res.sendFile(join(distPath, 'index.html'), {
     headers: {
       'Cache-Control': 'no-cache',
