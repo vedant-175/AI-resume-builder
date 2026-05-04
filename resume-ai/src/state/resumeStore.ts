@@ -139,13 +139,13 @@ function normalizeDraft(raw: unknown): ResumeDraft {
 }
 
 export const useResumeStore = create<ResumeState>((set, get) => {
-  const storedDraft = safeParseJson<unknown>(localStorage.getItem(STORAGE_KEY))
-  const storedSettings = safeParseJson<AiParams>(localStorage.getItem(SETTINGS_KEY))
+  const storedDraft = safeParseJson<unknown>(sessionStorage.getItem(STORAGE_KEY))
+  const storedSettings = safeParseJson<AiParams>(sessionStorage.getItem(SETTINGS_KEY))
 
   const persist = () => {
     const { draft, aiParams } = get()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(aiParams))
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
+    sessionStorage.setItem(SETTINGS_KEY, JSON.stringify(aiParams))
   }
 
   return {
