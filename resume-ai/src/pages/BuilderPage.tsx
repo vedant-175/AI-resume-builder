@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAiGenerateMutation } from '../services/ai/useAiGenerateMutation'
-import { useResumeStore, type ResumeDraft } from '../state/resumeStore'
+import { useResumeStore, type ResumeDraft, defaultDraft } from '../state/resumeStore'
 
 export function BuilderPage() {
   const gen = useAiGenerateMutation()
   const navigate = useNavigate()
   const savedDraft = useResumeStore((s) => s.draft)
   const setDraft = useResumeStore((s) => s.setDraft)
+  const reset = useResumeStore((s) => s.reset)
 
   const [form, setForm] = useState<ResumeDraft>(() => savedDraft)
 
@@ -72,6 +73,13 @@ export function BuilderPage() {
     navigate('/preview')
   }
 
+  function onClearData() {
+    reset()
+    setForm(defaultDraft)
+    setTouched({})
+    setAiParams({ temperature: 0.4, topP: 0.9 })
+  }
+
   return (
     <div className="grid gap-6">
       <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -83,6 +91,13 @@ export function BuilderPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <button
+              type="button"
+              onClick={onClearData}
+              className="inline-flex items-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              Clear Data
+            </button>
             <button
               type="button"
               onClick={onGenerateResume}
