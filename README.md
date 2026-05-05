@@ -334,11 +334,3 @@ For issues, questions, or suggestions:
 - Review the manual.txt file for additional details
 
 ---
-
-<div align="center">
-
-**Built with ❤️ for students and professionals**
-
-*Powered by React, TypeScript, and Groq AI*
-
-</div>
