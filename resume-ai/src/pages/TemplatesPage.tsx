@@ -90,6 +90,10 @@ export function TemplatesPage() {
 
     if (!file) return
 
+    if (file.type.startsWith('image/')) {
+      return
+    }
+
     try {
       const text = await file.text()
       const readableText = Array.from(text)
@@ -103,12 +107,12 @@ export function TemplatesPage() {
         .trim()
 
       if (readableText.length < 80) {
-        setFileError('This file could not be read as resume text. Paste the CV text below.')
+        setFileError('This file could not be read as resume text. Upload another file or use a text-based CV.')
       }
 
       setCvText(readableText)
     } catch {
-      setFileError('Could not read this CV file. Paste the CV text below.')
+      setFileError('Could not read this CV file. Upload another file or use a text-based CV.')
     }
   }
 
@@ -194,25 +198,13 @@ export function TemplatesPage() {
               <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
                 <input
                   type="file"
-                  accept=".txt,.md,.pdf,.doc,.docx"
+                  accept=".txt,.md,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif"
                   onChange={(event) => onUpload(event.target.files?.[0])}
                   className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-violet-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-violet-700"
                 />
                 {fileName ? <p className="mt-2 text-xs text-slate-500">{fileName}</p> : null}
                 {fileError ? <p className="mt-2 text-sm text-rose-700">{fileError}</p> : null}
               </div>
-
-              <label htmlFor="cvText" className="mt-5 block text-sm font-medium text-slate-700">
-                CV Text
-              </label>
-              <textarea
-                id="cvText"
-                value={cvText}
-                rows={10}
-                onChange={(event) => setCvText(event.target.value)}
-                placeholder="Paste CV text here if the uploaded file cannot be read."
-                className="mt-1 min-h-56 flex-1 resize-y rounded-md bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-violet-500"
-              />
             </div>
 
             <div className="flex flex-col rounded-xl bg-slate-50 p-5 ring-1 ring-slate-200">
