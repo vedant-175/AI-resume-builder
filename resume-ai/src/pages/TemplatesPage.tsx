@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 type CvAnalysis = {
@@ -67,11 +67,7 @@ function analyzeCv(text: string): CvAnalysis {
 }
 
 export function TemplatesPage() {
-  const [fileName, setFileName] = useState('')
-  const [cvText, setCvText] = useState('')
-  const [fileError, setFileError] = useState('')
-
-  const analysis = useMemo(() => (cvText.trim() ? analyzeCv(cvText) : null), [cvText])
+  const analysis = useMemo(() => analyzeCv(''), [])
   const score = analysis?.score ?? 0
   const improvements = analysis?.improvements.length
     ? analysis.improvements
@@ -82,35 +78,6 @@ export function TemplatesPage() {
         'Clear sections and role keywords improve parser accuracy.',
         'Measurable bullets make the resume stronger for recruiters and ATS ranking.',
       ]
-
-  async function onUpload(file: File | undefined) {
-    setFileError('')
-    setFileName(file?.name ?? '')
-    setCvText('')
-
-    if (!file) return
-
-    try {
-      const text = await file.text()
-      const readableText = Array.from(text)
-        .map((char) => {
-          const code = char.charCodeAt(0)
-          return code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126)
-            ? char
-            : ' '
-        })
-        .join('')
-        .trim()
-
-      if (readableText.length < 80) {
-        setFileError('This file could not be read as resume text. Paste the CV text below.')
-      }
-
-      setCvText(readableText)
-    } catch {
-      setFileError('Could not read this CV file. Paste the CV text below.')
-    }
-  }
 
   return (
     <div className="grid min-h-[calc(100dvh-112px)] gap-5">
@@ -179,76 +146,39 @@ export function TemplatesPage() {
         </section>
 
         <section className="min-h-[520px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="grid h-full gap-5 lg:grid-cols-[1fr_1fr]">
-            <div className="flex flex-col">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-slate-900">CV Enhancer</h2>
-                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
-                  ATS Check
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Upload or paste your CV to see ATS strength and targeted improvement points.
-              </p>
-
-              <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
-                <input
-                  type="file"
-                  accept=".txt,.md,.pdf,.doc,.docx"
-                  onChange={(event) => onUpload(event.target.files?.[0])}
-                  className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-violet-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-violet-700"
-                />
-                {fileName ? <p className="mt-2 text-xs text-slate-500">{fileName}</p> : null}
-                {fileError ? <p className="mt-2 text-sm text-rose-700">{fileError}</p> : null}
-              </div>
-
-              <label htmlFor="cvText" className="mt-5 block text-sm font-medium text-slate-700">
-                CV Text
-              </label>
-              <textarea
-                id="cvText"
-                value={cvText}
-                rows={10}
-                onChange={(event) => setCvText(event.target.value)}
-                placeholder="Paste CV text here if the uploaded file cannot be read."
-                className="mt-1 min-h-56 flex-1 resize-y rounded-md bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-violet-500"
+          <div className="flex flex-col rounded-xl bg-slate-50 p-5 ring-1 ring-slate-200 h-full">
+            <h3 className="text-base font-semibold text-slate-900">ATS Analysis</h3>
+            <div className="mt-4 flex items-end gap-2">
+              <div className="text-5xl font-bold text-violet-700">{score}</div>
+              <div className="pb-2 text-sm font-medium text-slate-600">/100</div>
+            </div>
+            <div className="mt-4 h-2 rounded-full bg-white">
+              <div
+                className="h-2 rounded-full bg-violet-600"
+                style={{ width: `${score}%` }}
               />
             </div>
 
-            <div className="flex flex-col rounded-xl bg-slate-50 p-5 ring-1 ring-slate-200">
-              <h3 className="text-base font-semibold text-slate-900">ATS Analysis</h3>
-              <div className="mt-4 flex items-end gap-2">
-                <div className="text-5xl font-bold text-violet-700">{score}</div>
-                <div className="pb-2 text-sm font-medium text-slate-600">/100</div>
-              </div>
-              <div className="mt-4 h-2 rounded-full bg-white">
-                <div
-                  className="h-2 rounded-full bg-violet-600"
-                  style={{ width: `${score}%` }}
-                />
-              </div>
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-slate-900">Ways to Improve</h4>
+              <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                {improvements.map((item) => (
+                  <li key={item} className="rounded-md bg-white px-3 py-2">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-              <div className="mt-6">
-                <h4 className="text-sm font-semibold text-slate-900">Ways to Improve</h4>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
-                  {improvements.map((item) => (
-                    <li key={item} className="rounded-md bg-white px-3 py-2">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mt-6">
-                <h4 className="text-sm font-semibold text-slate-900">Enhancement Suggestions</h4>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
-                  {suggestions.map((item) => (
-                    <li key={item} className="rounded-md bg-white px-3 py-2">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-slate-900">Enhancement Suggestions</h4>
+              <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                {suggestions.map((item) => (
+                  <li key={item} className="rounded-md bg-white px-3 py-2">
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
